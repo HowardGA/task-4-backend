@@ -2,24 +2,63 @@ import express from 'express';
 import authRoutes from './routes/authRoute.js';
 import cors from 'cors';
 import session from 'express-session';
-import cookieParser from 'cookie-parser';
 import sessionConfig from './middleware/sessionMiddleware.js';
 import userRoute from './routes/userRoute.js';
+import pg from 'pg';
+import connectPgSimple from 'connect-pg-simple'; 
 
 const app = express();
+const isProduction = process.env.NODE_ENV === 'production';
 const PORT = process.env.PORT || 3001;
 
-app.use(express.json());
-app.use(cookieParser()); 
-app.use(session(sessionConfig)); 
-
 const corsOptions = {
-  origin: ['https://task-4-frontend-one.vercel.app','http://localhost:5173'], 
-  credentials: true, 
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: ['https://task-4-frontend-one.vercel.app', 'http://localhost:5173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], 
 };
 app.use(cors(corsOptions));
+app.use(express.json());
+
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is not set.');
+}
+if (!definedSessionParams.secret) {
+    throw new Error('SESSION_SECRET is not set for express-session.');
+}
+
+const { Pool } = pg;
+const pgPool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: isProduction ? { rejectUnauthorized: false } : false, 
+});
+
+pgPool.on('error', (err, client) => {
+  console.error('Unexpected error on idle PostgreSQL client', err);
+});
+
+const PgStore = connectPgSimple(session);
+const sessionStore = new PgStore({
+  pool: pgPool,
+  tableName: 'user_sessions', 
+  createTableIfMissing: true,
+});
+
+app.use(session({
+  store: sessionStore,                   
+  name: sessionConfig.name,       
+  secret: sessionConfig.secret,   
+  resave: sessionConfig.resave,   
+  saveUninitialized: sessionConfig.saveUninitialized, 
+  cookie: {
+    httpOnly: sessionConfig.cookie.httpOnly, 
+    secure: sessionConfig.cookie.secure,    
+    sameSite: sessionConfig.cookie.sameSite,  
+    maxAge: sessionConfig.cookie.maxAge,      
+    domain: sessionConfig.cookie.domain,    
+    path: '/', 
+  }
+}));
 
 // Routes
 app.get('/', (req, res) => {
@@ -34,3 +73,5 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+export default app; 
