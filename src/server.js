@@ -23,7 +23,7 @@ app.use(express.json());
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is not set.');
 }
-if (!definedSessionParams.secret) {
+if (!sessionConfig.secret) {
     throw new Error('SESSION_SECRET is not set for express-session.');
 }
 
