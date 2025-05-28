@@ -14,7 +14,7 @@ app.use(cookieParser());
 app.use(session(sessionConfig)); 
 
 const corsOptions = {
-  origin: 'https://task-4-frontend-one.vercel.app', 
+  origin: ['https://task-4-frontend-one.vercel.app','http://localhost:5173'], 
   credentials: true, 
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
