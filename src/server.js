@@ -55,8 +55,6 @@ app.use(session({
     secure: sessionConfig.cookie.secure,    
     sameSite: sessionConfig.cookie.sameSite,  
     maxAge: sessionConfig.cookie.maxAge,      
-    domain: sessionConfig.cookie.domain,    
-    path: '/', 
   }
 }));
 
